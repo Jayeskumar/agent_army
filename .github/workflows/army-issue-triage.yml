@@ -1,0 +1,37 @@
+# Opt-in issue triage. Add the label `army:triage` to an issue to run it.
+# Requires the repository secret ANTHROPIC_API_KEY.
+name: Agent Army issue triage
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  triage:
+    if: github.event.label.name == 'army:triage'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install "agent-army @ git+https://github.com/${{ github.repository }}@main"
+      - name: Triage
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          printf '# %s\n\n%s\n' "$ISSUE_TITLE" "$ISSUE_BODY" > issue.md
+          army deploy issue_triager @issue.md --read-only > triage.md || true
+      - name: Comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          { echo "## 🪖 Agent Army triage"; echo; head -c 60000 triage.md; } > comment.md
+          gh issue comment ${{ github.event.issue.number }} --body-file comment.md

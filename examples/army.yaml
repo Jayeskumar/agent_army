@@ -1,0 +1,14 @@
+# Example configuration - copy to the root of the repository the army works on.
+model: claude-opus-5-5
+light_model: claude-sonnet-5-5   # used by triage, docs and release agents
+effort: high
+max_turns: 40
+max_review_loops: 3
+max_parallel: 4
+allow_write: true
+allow_exec: true
+command_timeout: 600
+extra_allowed_commands:
+  - "poetry run pytest"
+  - "pnpm test"
+  - "pnpm lint"
