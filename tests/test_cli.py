@@ -4,7 +4,9 @@ from agent_army.cli import main
 def test_roster_and_pipelines(capsys):
     assert main(["roster"]) == 0
     out = capsys.readouterr().out
-    assert "556 agents" in out and "accounting" in out and "commander" in out
+    from agent_army import roster
+    assert f"{len(roster.ROSTER) + 1} agents" in out and "accounting" in out and "commander" in out
+    assert "Industries" in out
     assert main(["roster", "--all"]) == 0
     assert "developer" in capsys.readouterr().out
     assert main(["roster", "--search", "reconcile bank statements"]) == 0

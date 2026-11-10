@@ -58,3 +58,17 @@ army deploy inbox_triager @inbox-export.md
 # Not sure who to ask? Let the commander decide.
 army mission "We are opening an office in Lisbon: plan hiring, IT setup, lease review and an announcement"
 ```
+
+## Industry teams
+
+```bash
+army deploy prior_authorization_specialist @patient-chart-notes.md      # healthcare admin
+army deploy deposition_summarizer @deposition-day1.txt                   # law firm
+army deploy planogram_designer "Snacks aisle, store cluster B, sales.csv" # retail
+army deploy haccp_plan_writer "Cold-pressed juice line"                  # food
+army deploy loan_application_reviewer @application-1043.md               # banking
+army run grant_application "After-school coding club for 200 students" --allow-web
+army run automation_blueprint "Invoice approvals in the finance team"
+army run course_creation "Two-hour course: handling difficult customer calls"
+army run event_planning "Customer conference, 300 people, Amsterdam, June"
+```

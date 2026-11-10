@@ -274,6 +274,12 @@ def department_labels() -> dict[str, tuple[str, str]]:
     return labels
 
 
+def sector_of(division: str) -> str:
+    if division in CORE_DIVISIONS:
+        return "SDLC core"
+    return _catalogue.SECTOR_OF.get(division, "Custom")
+
+
 def search(query: str, department: str | None = None, limit: int = 10) -> list[AgentSpec]:
     """Rank agents by how well their name, title and mission match the query."""
     words = [w for w in re.findall(r"[a-z0-9]+", query.lower()) if len(w) > 1 and w not in _STOPWORDS]

@@ -341,6 +341,56 @@ _register(Pipeline(
 ))
 
 
+_register(Pipeline(
+    "grant_application",
+    "Win a grant: funder research, proposal, budget, then fact-check and edit before submission.",
+    [
+        Stage("research", ["grant_prospect_researcher"], "Find and assess funders for:\n\n{goal}"),
+        Stage("draft", ["grant_writer", "nonprofit_budget_planner", "theory_of_change_designer"],
+              "Prepare your part of the grant application:\n\n{goal}"),
+        Stage("review", ["fact_checker", "editor"], "Review the grant application:\n\n{goal}",
+              gate=True, fixer="grant_writer"),
+    ],
+))
+
+_register(Pipeline(
+    "automation_blueprint",
+    "Automate a business process: find opportunities, design the workflow and agent, assess risk, plan evaluation.",
+    [
+        Stage("scout", ["automation_opportunity_scout"], "Find what to automate in:\n\n{goal}"),
+        Stage("design", ["workflow_automation_designer", "agent_designer"],
+              "Design the automation for the top opportunity above:\n\n{goal}"),
+        Stage("assure", ["ai_risk_assessor", "ai_eval_designer"], "Assess and plan evaluation of the design:\n\n{goal}",
+              gate=True, fixer="workflow_automation_designer"),
+        Stage("roi", ["automation_roi_analyst"], "Estimate the return on this automation:\n\n{goal}"),
+    ],
+))
+
+_register(Pipeline(
+    "course_creation",
+    "Build a training course: design, content, assessments and a learning-quality review.",
+    [
+        Stage("design", ["instructional_designer"], "Design the course:\n\n{goal}"),
+        Stage("build", ["training_content_writer", "assessment_builder", "workshop_guide_writer"],
+              "Build your part of the course:\n\n{goal}"),
+        Stage("review", ["editor", "accessibility_compliance_auditor"], "Review the course materials:\n\n{goal}",
+              gate=True, fixer="training_content_writer"),
+    ],
+))
+
+_register(Pipeline(
+    "event_planning",
+    "Plan an event: overall plan, budget, agenda, attendee communications and a risk check.",
+    [
+        Stage("plan", ["conference_planner"], "Plan this event:\n\n{goal}"),
+        Stage("details", ["event_budget_planner", "agenda_designer", "attendee_communications_writer"],
+              "Prepare your part of the event plan:\n\n{goal}"),
+        Stage("risk", ["event_risk_planner"], "Check the event plan for risks:\n\n{goal}",
+              gate=True, fixer="conference_planner"),
+    ],
+))
+
+
 def get(name: str) -> Pipeline:
     try:
         return PIPELINES[name]

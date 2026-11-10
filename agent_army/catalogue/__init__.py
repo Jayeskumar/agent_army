@@ -8,16 +8,34 @@ to print the Markdown catalogue.
 from __future__ import annotations
 
 from ..agent import AgentSpec
-from . import business, growth, operations, people, product_tech
+from . import (
+    business, functions_extra, growth, industries_a, industries_b, industries_c, operations, people, product_tech,
+)
 from ._schema import Department, Role
 
-DEPARTMENTS: list[Department] = [
+_FUNCTION_DEPARTMENTS: list[Department] = [
     *business.DEPARTMENTS,
     *people.DEPARTMENTS,
     *growth.DEPARTMENTS,
     *product_tech.DEPARTMENTS,
     *operations.DEPARTMENTS,
+    *functions_extra.DEPARTMENTS,
 ]
+# industry_specialists (a cross-industry generalist pool) lives in operations.py.
+_INDUSTRY_DEPARTMENTS: list[Department] = [
+    *industries_a.DEPARTMENTS,
+    *industries_b.DEPARTMENTS,
+    *industries_c.DEPARTMENTS,
+]
+_generalists = next(d for d in _FUNCTION_DEPARTMENTS if d.name == "industry_specialists")
+_FUNCTION_DEPARTMENTS.remove(_generalists)
+_INDUSTRY_DEPARTMENTS.append(_generalists)
+
+DEPARTMENTS: list[Department] = _FUNCTION_DEPARTMENTS + _INDUSTRY_DEPARTMENTS
+SECTOR_OF: dict[str, str] = {
+    **{d.name: "Business functions" for d in _FUNCTION_DEPARTMENTS},
+    **{d.name: "Industries" for d in _INDUSTRY_DEPARTMENTS},
+}
 
 REGULATED_NOTE = (
     "Your work is a draft for review by a qualified professional in this field. Do not present it as "
@@ -88,8 +106,12 @@ def render_markdown(core: list[AgentSpec], catalogue: list[AgentSpec]) -> str:
         "|---|---|---|",
         f"| [Core SDLC squad](#core-sdlc-squad) | {len(core)} | Requirements to release for software teams |",
     ]
+    current_sector = None
     for dept in DEPARTMENTS:
-        anchor = dept.label.lower().replace(" & ", "--").replace(" ", "-").replace("&", "")
+        if SECTOR_OF[dept.name] != current_sector:
+            current_sector = SECTOR_OF[dept.name]
+            lines.append(f"| **{current_sector}** | | |")
+        anchor = _anchor(dept.label)
         lines.append(f"| [{dept.label}](#{anchor}) | {len(by_dept.get(dept.name, []))} | {dept.description} |")
     lines += ["", "## Core SDLC squad", "", "| Agent | Title | Division | Tools | Mission |", "|---|---|---|---|---|"]
     for s in core:
@@ -101,6 +123,12 @@ def render_markdown(core: list[AgentSpec], catalogue: list[AgentSpec]) -> str:
             mission = s.mission.split("\n", 1)[0].replace("|", "\\|")
             lines.append(f"| `{s.name}` | {s.title} | {_tiers(s)} | {mission} | {', '.join(s.deliverables)} |")
     return "\n".join(lines) + "\n"
+
+
+def _anchor(label: str) -> str:
+    """GitHub-style heading anchor."""
+    out = "".join(c for c in label.lower() if c.isalnum() or c in " -")
+    return out.replace(" ", "-")
 
 
 def _tiers(spec: AgentSpec) -> str:

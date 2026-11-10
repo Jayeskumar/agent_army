@@ -1,19 +1,24 @@
 # 🪖 Agent Army
 
-**556 Claude agents that handle the digital work of a whole office: software delivery,
-finance, accounting, legal, compliance, HR, recruiting, marketing, sales, support, product,
-design, data, IT, security, operations, communications, administration and more.**
+**1,016 Claude agents that handle the digital work of a whole organisation: software
+delivery, finance, accounting, legal, compliance, HR, recruiting, marketing, sales, support,
+product, design, data, IT, security, operations, communications and administration, plus
+dedicated teams for 18 industries from healthcare and banking to retail and agriculture.**
 
 Agent Army is organised like a company:
 
-* **The commander** takes any mission, finds the right specialists among 555, sends them
+* **The commander** takes any mission, finds the right specialists among 1,015, sends them
   out in order and reacts to their reports.
 * **24 core SDLC specialists** take software from a raw idea to reviewed, tested,
   documented and released code.
-* **531 office specialists in 26 departments**, from the `bank_reconciler` and
+* **629 business-function specialists in 31 departments**, from the `bank_reconciler` and
   `contract_reviewer` to the `press_release_writer`, `interview_kit_designer`,
-  `churn_risk_analyst` and `meeting_minutes_taker`.
-* **22 pipelines** chain specialists together with parallel squads, **quality gates** and
+  `prompt_engineer`, `crm_administrator` and `meeting_minutes_taker`.
+* **362 industry specialists in 18 departments**: healthcare administration, pharma, education,
+  real estate, insurance, banking, nonprofit, public sector, hospitality, manufacturing,
+  construction, media, law firms, retail, logistics, energy, agriculture, plus a pool of
+  cross-industry generalists.
+* **26 pipelines** chain specialists together with parallel squads, **quality gates** and
   automatic **fix loops**: feature delivery, PR review, month-end close, RFP response,
   hiring, campaigns, board reports, policies, launches and more.
 
@@ -28,10 +33,10 @@ data), uses real tools, and files a structured report that the next specialist b
                  │   Commander (find_agents + dispatch_agent)       │
                  │   or a Pipeline (stages, squads, gates)          │
                  └────────────────────────┬─────────────────────────┘
-  ┌───────────┬───────────┬────────────┬──┴─────────┬────────────┬────────────┬───────────┐
-  SDLC core   Finance &   Legal &      People &     Growth:      Product,     Exec, IT, Eng,
-  (24)        Accounting  Compliance   Talent, L&D  Mktg, Sales  Design, Data Ops, Comms,
-              (40)        (40)         (61)         CS (84)      (61)         Admin... (245)
+      ┌──────────────────────┬──────────┴───────────┬───────────────────────────┐
+  SDLC core (24)     Business functions (629)    Industries (362)         Commander (1)
+  build, review,     finance, legal, HR, sales,  healthcare, banking,
+  test, release      marketing, IT, ops, AI...   retail, energy, media...
                                           │
                      reports + artifacts → shared blackboard → next specialist
                      gate blocked → findings go back to the fixer → re-check
@@ -48,7 +53,7 @@ export ANTHROPIC_API_KEY=...     # or: ant auth login
 cd /path/to/your/workspace       # a repo, or a folder of documents and data
 army init                        # writes army.yaml + ARMY.md (standing orders) templates
 
-army roster                                  # the 33 departments
+army roster                                  # the 56 departments
 army roster --search "reconcile bank"        # find a specialist
 army deploy contract_reviewer @msa.md        # one specialist, one task
 army run month_end "October 2026"            # a whole pipeline
@@ -67,7 +72,7 @@ success, so you can see how a pipeline is wired without calling the model.
 | `army roster --department legal` | Every agent in a department |
 | `army roster --search "<words>"` | Find agents by skill, deliverable or title |
 | `army roster --show <agent>` | One agent's full brief |
-| `army roster --all` | All 556 agents |
+| `army roster --all` | All 1,016 agents |
 | `army pipelines` | Pipelines, their stages and gates |
 | `army run <pipeline> "<goal>"` | Run a pipeline. The goal can be text, `-` (stdin) or `@file.md` |
 | `army mission "<goal>"` | The commander plans and dispatches specialists dynamically |
@@ -84,7 +89,9 @@ Exit codes are CI-friendly: `0` completed, `1` failed, `2` blocked by a quality 
 
 | Department | Agents | Examples |
 |---|---|---|
+| **SDLC core** | | |
 | SDLC core (7 divisions) | 24 | `product_strategist`, `architect`, `developer`, `code_reviewer`, `test_engineer`, `security_auditor`, `release_manager`, `incident_responder` |
+| **Business functions** | | |
 | Executive & Strategy | 20 | `okr_planner`, `board_pack_writer`, `decision_memo_writer`, `market_sizing_analyst`, `chief_of_staff` |
 | Finance | 20 | `fpa_analyst`, `cash_flow_forecaster`, `financial_modeler`, `valuation_analyst`, `tax_research_analyst` |
 | Accounting | 20 | `accounts_payable_clerk`, `bank_reconciler`, `month_end_close_coordinator`, `revenue_recognition_specialist`, `bookkeeper` |
@@ -110,6 +117,30 @@ Exit codes are CI-friendly: `0` completed, `1` failed, `2` blocked by a quality 
 | Office & Administration | 21 | `executive_assistant`, `inbox_triager`, `calendar_planner`, `travel_planner`, `spreadsheet_assistant` |
 | Research & Knowledge | 20 | `research_analyst`, `literature_reviewer`, `document_qa_specialist`, `grant_writer`, `wiki_gardener` |
 | E-commerce | 20 | `product_listing_writer`, `catalog_data_manager`, `promotions_planner`, `order_fraud_analyst` |
+| AI & Automation | 20 | `prompt_engineer`, `agent_designer`, `ai_eval_designer`, `workflow_automation_designer`, `rpa_analyst` |
+| Revenue Operations | 20 | `crm_administrator`, `lead_routing_designer`, `quota_planner`, `cpq_configurator`, `revenue_reporting_analyst` |
+| Procurement | 20 | `category_manager`, `spend_analyst`, `rfq_writer`, `bid_evaluator`, `should_cost_analyst` |
+| Quality & Testing | 20 | `test_case_writer`, `exploratory_tester`, `release_readiness_reviewer`, `defect_triage_lead` |
+| Founder's Office | 20 | `pitch_deck_writer`, `investor_update_writer`, `cap_table_analyst`, `startup_financial_planner` |
+| Events & Experiences | 20 | `conference_planner`, `webinar_producer`, `event_run_of_show_writer`, `sponsorship_package_designer` |
+| **Industries** | | |
+| Healthcare Administration | 20 | `prior_authorization_specialist`, `denial_management_analyst`, `provider_credentialing_specialist` |
+| Pharma & Life Sciences | 20 | `regulatory_affairs_writer`, `clinical_protocol_writer`, `deviation_investigator`, `medical_writer` |
+| Education | 20 | `unit_planner`, `rubric_designer`, `exam_writer`, `student_success_advisor`, `school_timetable_planner` |
+| Real Estate & Property | 20 | `property_manager`, `rent_roll_analyst`, `transaction_coordinator`, `commercial_lease_analyst` |
+| Insurance | 20 | `policy_summary_writer`, `claims_intake_specialist`, `loss_run_analyst`, `broker_submission_writer` |
+| Banking & Fintech | 20 | `loan_application_reviewer`, `chargeback_specialist`, `sanctions_screening_reviewer`, `credit_policy_writer` |
+| Nonprofit & Fundraising | 20 | `fundraising_strategist`, `appeal_letter_writer`, `grant_report_writer`, `volunteer_coordinator` |
+| Public Sector & Government | 20 | `legislative_summarizer`, `public_consultation_analyst`, `plain_language_editor`, `council_report_writer` |
+| Hospitality & Travel | 20 | `hotel_revenue_manager`, `recipe_costing_analyst`, `food_safety_planner`, `guest_review_analyst` |
+| Manufacturing & Engineering | 20 | `work_instruction_writer`, `fmea_facilitator`, `oee_analyst`, `ehs_officer`, `root_cause_analyst` |
+| Construction & Architecture | 20 | `specification_writer`, `rfi_manager`, `change_order_analyst`, `bid_leveler`, `quantity_surveyor` |
+| Media & Publishing | 20 | `managing_editor`, `news_writer`, `developmental_editor`, `book_proposal_writer`, `screenplay_reader` |
+| Law Firm Operations | 20 | `client_intake_specialist`, `docketing_clerk`, `deposition_summarizer`, `privilege_log_preparer` |
+| Retail & Stores | 20 | `planogram_designer`, `assortment_planner`, `markdown_optimizer`, `store_staffing_planner` |
+| Logistics & Transport | 20 | `route_planner`, `freight_audit_specialist`, `load_planner`, `carrier_performance_analyst` |
+| Energy & Utilities | 20 | `rate_tariff_explainer`, `outage_communications_writer`, `solar_proposal_writer`, `meter_data_analyst` |
+| Agriculture & Food | 20 | `crop_planner`, `haccp_plan_writer`, `traceability_specialist`, `food_label_reviewer` |
 | Industry Specialists | 22 | `lease_abstractor`, `medical_billing_specialist`, `lesson_planner`, `construction_estimator`, `paralegal` |
 
 The full list, with every agent's mission, deliverables and tools, is in **[CATALOGUE.md](CATALOGUE.md)**.
@@ -118,8 +149,9 @@ Every office specialist has named **deliverables** (for example `fpa_analyst` de
 `forecast` and `variance_analysis`). It submits them as artifacts in its report and, when it
 has write access, saves them under `deliverables/<agent>/`. Every office specialist is told
 never to invent facts, figures, names, quotes or sources, and to list open questions
-instead. Agents in regulated fields (finance, accounting, legal, compliance, HR, industry
-specialists) also mark their output as a draft for a qualified professional to review.
+instead. Agents in regulated fields (finance, accounting, legal, compliance, HR, healthcare,
+pharma, insurance, banking, public sector, law firms and the industry generalists) also mark
+their output as a draft for a qualified professional to review.
 
 ## Pipelines
 
@@ -149,6 +181,10 @@ specialists) also mark their output as a draft for a qualified professional to r
 | `vendor_selection` | sourcing → risk ‖ comparison → contract review → decision memo |
 | `meeting_followup` | minutes → follow-up emails ‖ task list |
 | `employee_onboarding` | onboarding plan → learning path ‖ IT setup guide ‖ welcome email |
+| `grant_application` | funder research → proposal ‖ budget ‖ theory of change → 🚧 fact check ‖ edit |
+| `automation_blueprint` | find opportunities → workflow ‖ agent design → 🚧 AI risk ‖ eval plan → ROI |
+| `course_creation` | course design → content ‖ assessments ‖ workshop guide → 🚧 edit ‖ accessibility |
+| `event_planning` | event plan → budget ‖ agenda ‖ attendee emails → 🚧 risk check |
 
 **How gates work:** each agent ends by submitting a structured report with a verdict
 (`pass`, `needs_changes`, `fail`, `info`), findings (severity, location, detail) and named
@@ -160,7 +196,7 @@ up to `max_review_loops` times; after that the run stops as **blocked**.
 mission goal plus the latest report (summary, findings and artifacts) from every
 specialist that ran before it.
 
-**How the commander copes with 555 specialists:** its prompt lists the departments, not
+**How the commander copes with 1,015 specialists:** its prompt lists the departments, not
 every agent. It calls `find_agents` to search the roster by skill or deliverable, then
 `dispatch_agent` to deploy someone. If it gets a name wrong, it is offered the closest matches.
 
@@ -171,7 +207,7 @@ every agent. It calls `find_agents` to search the roster by skill or deliverable
   standing orders (`ARMY.md`, `AGENTS.md` or `CLAUDE.md`). Each agent finishes by calling
   `submit_report`.
 * **Roster** (`agent_army/roster.py`): the 24 core specialists are written out in full. The
-  531 office specialists come from compact department files in `agent_army/catalogue/`
+  991 business and industry specialists come from compact department files in `agent_army/catalogue/`
   (one line per role: name, title, mission, deliverables, tools), which are expanded into
   full briefs.
 * **Tools** (`agent_army/tools.py`): `list_files`, `read_file`, `search_code`, `git_diff`,

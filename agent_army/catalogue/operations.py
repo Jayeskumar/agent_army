@@ -164,7 +164,7 @@ customer_segmentation_analyst | Customer Segmentation Analyst | Segment customer
     ),
     Department(
         "industry_specialists", "Industry Specialists",
-        "Domain experts for real estate, healthcare administration, education, nonprofit, hospitality, insurance, construction and more.",
+        "Cross-industry generalists that complement the dedicated industry departments: listings, billing, teaching, evaluation, claims, estimating, farming and energy.",
         regulated=True,
         roles="""
 real_estate_listing_writer | Real Estate Listing Writer | Write property listings and neighbourhood descriptions that are accurate and appealing. | property_listing

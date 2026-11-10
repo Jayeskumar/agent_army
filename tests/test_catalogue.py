@@ -11,9 +11,10 @@ from agent_army.tools import Toolbox, web_tool_definitions
 from conftest import call, submit
 
 
-def test_army_has_more_than_500_agents():
-    assert len(roster.ROSTER) >= 500
-    assert len(roster.catalogue_specs()) >= 500
+def test_army_has_more_than_1000_agents():
+    assert len(roster.ROSTER) + 1 >= 1000  # plus the commander
+    assert len(roster.catalogue_specs()) >= 990
+    assert {roster.sector_of(d) for d in roster.divisions()} == {"SDLC core", "Business functions", "Industries"}
     assert len(roster.core_specs()) == 24
 
 
@@ -45,6 +46,11 @@ def test_search_finds_the_right_specialist():
         "kubernetes manifests": "kubernetes_engineer",
         "meeting minutes": "meeting_minutes_taker",
         "phishing": "phishing_analyst",
+        "HACCP plan": "haccp_plan_writer",
+        "deposition transcript summary": "deposition_summarizer",
+        "planogram": "planogram_designer",
+        "prior authorization": "prior_authorization_specialist",
+        "pitch deck": "pitch_deck_writer",
     }
     for query, expected in expectations.items():
         hits = roster.search(query)

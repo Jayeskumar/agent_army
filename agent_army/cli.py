@@ -172,12 +172,18 @@ def cmd_roster(args) -> int:
         print(f"\n== Command (1) ==\n  {roster.COMMANDER.name:<34} {'r+dispatch':<7} {roster.COMMANDER.tagline}")
         return 0
 
-    print(f"Agent Army: {total} agents - {total - 1} specialists in {len(groups)} departments, plus the commander\n")
-    print(f"  {'department':<26} {'agents':>6}  covers")
+    print(f"Agent Army: {total} agents - {total - 1} specialists in {len(groups)} departments, plus the commander")
+    current = None
     for key, specs in groups.items():
+        sector = roster.sector_of(key)
+        if sector != current:
+            current = sector
+            n = sum(len(v) for k, v in groups.items() if roster.sector_of(k) == sector)
+            print(f"\n{sector} ({n})")
+            print(f"  {'department':<28} {'agents':>6}  covers")
         label, desc = labels.get(key, (key, ""))
-        print(f"  {key:<26} {len(specs):>6}  {label}: {desc}")
-    print(f"  {'commander':<26} {1:>6}  Leads `army mission` runs and dispatches the others")
+        print(f"  {key:<28} {len(specs):>6}  {label}: {desc}")
+    print(f"\nCommand (1)\n  {'commander':<28} {1:>6}  Leads `army mission` runs and dispatches the others")
     print("\nMore: army roster --department <name> | --search '<words>' | --show <agent> | --all")
     return 0
 
