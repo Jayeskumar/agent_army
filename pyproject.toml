@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "agent-army"
 version = "0.1.0"
-description = "A squad of specialised Claude agents that automate the software development lifecycle end to end."
+description = "556 Claude agents that run the digital work of a whole office (SDLC, finance, legal, HR, sales, support, data and more), led by a commander agent and 22 pipelines with parallel squads, quality gates and fix loops."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
