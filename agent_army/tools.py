@@ -38,6 +38,24 @@ FORBIDDEN_GIT = {"push", "reset", "clean", "rebase", "checkout", "switch", "bran
 
 SUBMIT_TOOL = "submit_report"
 
+# Server-side web tools run on Anthropic's infrastructure; the dynamic-filtering
+# variants need a recent model, older ones get the basic variants.
+WEB_TOOL_NAMES = ("web_fetch", "web_search")
+_DYNAMIC_WEB_PREFIXES = (
+    "claude-fable-", "claude-mythos-", "claude-opus-5", "claude-opus-4-8", "claude-opus-4-7",
+    "claude-opus-4-6", "claude-sonnet-5", "claude-sonnet-4-6",
+)
+
+
+def web_tool_definitions(model: str, max_uses: int) -> list[dict[str, Any]]:
+    dynamic = model.startswith(_DYNAMIC_WEB_PREFIXES)
+    return [
+        {"type": "web_fetch_20260209" if dynamic else "web_fetch_20250910", "name": "web_fetch",
+         "max_uses": max_uses},
+        {"type": "web_search_20260209" if dynamic else "web_search_20250305", "name": "web_search",
+         "max_uses": max_uses},
+    ]
+
 # Environment variables whose names look like credentials are not passed to
 # commands agents run (tests in an untrusted change could otherwise read them).
 SECRET_ENV = re.compile(
@@ -96,6 +114,8 @@ class Toolbox:
             effective.discard("write")
         if not self.config.allow_exec:
             effective.discard("exec")
+        if not self.config.allow_web:
+            effective.discard("web")
         self.tiers = effective
         self._specs = {s.name: s for s in self._build_specs() if s.tier in self.tiers or s.tier == "always"}
 
@@ -104,9 +124,16 @@ class Toolbox:
     def names(self) -> list[str]:
         return list(self._specs)
 
-    def api_definitions(self) -> list[dict[str, Any]]:
+    @property
+    def server_tool_names(self) -> list[str]:
+        return list(WEB_TOOL_NAMES) if "web" in self.tiers else []
+
+    def api_definitions(self, model: str = "") -> list[dict[str, Any]]:
         # Deterministic order keeps the prompt-cache prefix stable.
-        return [self._specs[n].to_api() for n in sorted(self._specs)]
+        defs = [self._specs[n].to_api() for n in sorted(self._specs)]
+        if "web" in self.tiers:
+            defs += web_tool_definitions(model, self.config.web_max_uses)
+        return defs
 
     def execute(self, name: str, args: dict[str, Any]) -> str:
         spec = self._specs.get(name)

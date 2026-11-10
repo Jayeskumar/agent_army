@@ -60,6 +60,8 @@ class ArmyConfig:
     max_turns: int = 40  # tool-use round trips per agent
     allow_write: bool = True
     allow_exec: bool = False
+    allow_web: bool = False  # server-side web search / fetch for agents with the web tier
+    web_max_uses: int = 5  # per tool, per model request
     allowed_commands: list[str] = field(default_factory=lambda: list(DEFAULT_ALLOWED_COMMANDS))
     command_timeout: int = 300
     max_review_loops: int = 3
@@ -99,6 +101,7 @@ class ArmyConfig:
             "ARMY_EFFORT": ("effort", str),
             "ARMY_MAX_TURNS": ("max_turns", int),
             "ARMY_ALLOW_EXEC": ("allow_exec", _parse_bool),
+            "ARMY_ALLOW_WEB": ("allow_web", _parse_bool),
         }
         for env, (key, conv) in env_map.items():
             if env in os.environ:

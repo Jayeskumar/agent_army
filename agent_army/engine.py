@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import difflib
 import json
 import re
 import threading
@@ -219,7 +220,10 @@ class Army:
             name = str(args.get("agent", ""))
             task = str(args.get("task", "")).strip()
             if name not in roster.ROSTER:
-                return f"Error: unknown agent '{name}'. Choose from: {', '.join(roster.ROSTER)}"
+                close = difflib.get_close_matches(name, list(roster.ROSTER), n=3)
+                close += [c.name for c in roster.search(name.replace("_", " "), limit=5) if c.name not in close]
+                hint = ", ".join(close[:5])
+                return f"Error: unknown agent '{name}'." + (f" Closest matches: {hint}" if hint else "")
             if not task:
                 return "Error: task must not be empty."
             if dispatches["n"] >= MAX_DISPATCHES:
@@ -231,18 +235,29 @@ class Army:
             self._save(run)
             return report.as_context()
 
+        def find(args: dict[str, Any]) -> str:
+            query = str(args.get("query", ""))
+            dept = args.get("department") or None
+            if dept and dept not in roster.divisions():
+                return f"Error: unknown department '{dept}'. Departments: {', '.join(roster.divisions())}"
+            hits = roster.search(query, department=dept, limit=12)
+            if not hits:
+                return "No matching specialists. Try different words or a department name."
+            return "\n".join(f"- {s.describe()}" for s in hits)
+
         dispatch_tool = ExtraTool(
             definition={
                 "name": "dispatch_agent",
                 "description": (
                     "Deploy one specialist on an assignment and wait for their report. The specialist "
                     "automatically receives the mission goal and the latest report from every specialist "
-                    "deployed so far. Give precise, self-contained instructions."
+                    "deployed so far. Give precise, self-contained instructions. Use find_agents first if "
+                    "you are not sure of the agent's exact name."
                 ),
                 "input_schema": {
                     "type": "object",
                     "properties": {
-                        "agent": {"type": "string", "enum": sorted(roster.ROSTER)},
+                        "agent": {"type": "string", "description": "Exact agent name, e.g. 'contract_reviewer'."},
                         "task": {"type": "string", "description": "The assignment, written as a brief."},
                     },
                     "required": ["agent", "task"],
@@ -251,10 +266,38 @@ class Army:
             },
             handler=dispatch,
         )
-        roster_text = "\n".join(f"- {s.describe()}" for s in roster.ROSTER.values())
-        commander = replace(roster.COMMANDER, mission=roster.COMMANDER.mission
-                            + f"\n\nAvailable specialists (dispatch with `dispatch_agent`):\n{roster_text}")
-        agent = Agent(commander, self.config, self.backend, self.on_event, {"dispatch_agent": dispatch_tool})
+        find_tool = ExtraTool(
+            definition={
+                "name": "find_agents",
+                "description": (
+                    f"Search the army's {len(roster.ROSTER)} specialists by skill, deliverable or job title. "
+                    "Optionally restrict to one department."
+                ),
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "query": {"type": "string", "description": "What you need done, in a few words."},
+                        "department": {"type": "string", "description": "Optional department key."},
+                    },
+                    "required": ["query"],
+                    "additionalProperties": False,
+                },
+            },
+            handler=find,
+        )
+        labels = roster.department_labels()
+        dept_lines = "\n".join(
+            f"- `{key}` ({len(specs)} agents): {labels.get(key, (key, ''))[1]}"
+            for key, specs in roster.divisions().items()
+        )
+        core_lines = "\n".join(f"- {s.describe()}" for s in roster.core_specs())
+        commander = replace(roster.COMMANDER, mission=roster.COMMANDER.mission + (
+            f"\n\nYou command {len(roster.ROSTER)} specialists. Use `find_agents` to locate the right ones and "
+            f"`dispatch_agent` to deploy them.\n\nDepartments:\n{dept_lines}\n\n"
+            f"Core software-delivery squad:\n{core_lines}"
+        ))
+        agent = Agent(commander, self.config, self.backend, self.on_event,
+                      {"dispatch_agent": dispatch_tool, "find_agents": find_tool})
         final = agent.run(f"Accomplish this mission:\n\n{goal}")
         stage.reports.append(final)
 

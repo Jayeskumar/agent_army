@@ -188,6 +188,159 @@ _register(Pipeline(
 ))
 
 
+# ----------------------------------------------------------------- office work
+_register(Pipeline(
+    "campaign",
+    "Marketing campaign: research, strategy, copy for every channel, then brand and fact checks.",
+    [
+        Stage("research", ["market_research_analyst", "persona_researcher"],
+              "Research the market and audience for this campaign:\n\n{goal}"),
+        Stage("strategy", ["campaign_strategist"], "Write the campaign brief for:\n\n{goal}"),
+        Stage("create", ["copywriter", "email_marketer", "social_media_manager"],
+              "Create your channel's assets for the campaign brief above:\n\n{goal}"),
+        Stage("review", ["brand_guardian", "fact_checker"],
+              "Check the campaign assets above:\n\n{goal}", gate=True, fixer="copywriter"),
+    ],
+))
+
+_register(Pipeline(
+    "hiring",
+    "Open a role: intake, job description, compliance check, sourcing plan, outreach and interview kit.",
+    [
+        Stage("intake", ["hiring_manager_intake"], "Run the intake for this role:\n\n{goal}"),
+        Stage("job_description", ["job_description_writer"], "Write the job description for:\n\n{goal}"),
+        Stage("compliance", ["recruiting_compliance_checker"],
+              "Check the job description and hiring plan for:\n\n{goal}", gate=True, fixer="job_description_writer"),
+        Stage("launch", ["sourcing_specialist", "candidate_outreach_writer", "interview_kit_designer"],
+              "Prepare your part of the hiring launch for:\n\n{goal}"),
+    ],
+))
+
+_register(Pipeline(
+    "month_end",
+    "Month-end close: reconciliations, accruals, ledger review, statements, audit check and variance commentary.",
+    [
+        Stage("reconcile", ["bank_reconciler", "accruals_accountant", "intercompany_accountant"],
+              "Do your month-end close work from the data in the workspace. Period / notes: {goal}"),
+        Stage("ledger", ["general_ledger_accountant"],
+              "Review the trial balance and prepare adjusting entries. Period / notes: {goal}"),
+        Stage("statements", ["financial_statement_preparer"],
+              "Prepare the financial statements. Period / notes: {goal}"),
+        Stage("review", ["internal_auditor"],
+              "Review the close for errors and unsupported entries. Period / notes: {goal}",
+              gate=True, fixer="general_ledger_accountant"),
+        Stage("commentary", ["fpa_analyst"],
+              "Write the variance commentary against budget. Period / notes: {goal}"),
+    ],
+))
+
+_register(Pipeline(
+    "rfp",
+    "Answer an RFP: requirements matrix, answers, pricing, proposal, then contract and editorial review.",
+    [
+        Stage("analyse", ["rfp_analyst"], "Analyse this RFP:\n\n{goal}"),
+        Stage("answer", ["rfp_response_writer", "quote_builder", "security_questionnaire_responder"],
+              "Draft your part of the RFP response:\n\n{goal}"),
+        Stage("proposal", ["proposal_writer"], "Assemble the full proposal:\n\n{goal}"),
+        Stage("review", ["contract_reviewer", "editor"],
+              "Review the proposal before submission:\n\n{goal}", gate=True, fixer="proposal_writer"),
+    ],
+))
+
+_register(Pipeline(
+    "board_report",
+    "Board or investor update: financial and KPI analysis, board pack, fact check and executive brief.",
+    [
+        Stage("analysis", ["fpa_analyst", "data_analyst"],
+              "Analyse performance for the board update. Period / notes: {goal}"),
+        Stage("pack", ["board_pack_writer"], "Write the board pack. Period / notes: {goal}"),
+        Stage("check", ["fact_checker"],
+              "Check every number and claim in the board pack against the workspace data. Notes: {goal}",
+              gate=True, fixer="board_pack_writer"),
+        Stage("brief", ["executive_briefer"], "Write the one-page executive brief. Notes: {goal}"),
+    ],
+))
+
+_register(Pipeline(
+    "research_report",
+    "Sourced research report: research, analysis, writing, then fact-check and edit.",
+    [
+        Stage("research", ["research_analyst", "data_source_scout"], "Research this question:\n\n{goal}"),
+        Stage("write", ["report_writer"], "Write the report from the research above:\n\n{goal}"),
+        Stage("review", ["fact_checker", "editor"], "Review the report:\n\n{goal}",
+              gate=True, fixer="report_writer"),
+    ],
+))
+
+_register(Pipeline(
+    "policy",
+    "Write or update a company policy, review it for compliance and clarity, then announce it.",
+    [
+        Stage("draft", ["policy_manager"], "Draft or update this policy:\n\n{goal}"),
+        Stage("review", ["compliance_officer", "editor"], "Review the policy draft:\n\n{goal}",
+              gate=True, fixer="policy_manager"),
+        Stage("announce", ["internal_communications_manager"],
+              "Write the employee announcement for the policy:\n\n{goal}"),
+    ],
+))
+
+_register(Pipeline(
+    "product_launch",
+    "Cross-team launch: launch plan, messaging, release notes, press, sales enablement and brand review.",
+    [
+        Stage("plan", ["product_launch_manager"], "Plan the launch:\n\n{goal}"),
+        Stage("assets", ["product_marketing_manager", "release_notes_writer", "press_release_writer",
+                         "sales_enablement_trainer"],
+              "Create your launch assets:\n\n{goal}"),
+        Stage("review", ["brand_guardian", "communications_reviewer"], "Review all launch assets:\n\n{goal}",
+              gate=True, fixer="product_marketing_manager"),
+    ],
+))
+
+_register(Pipeline(
+    "support_insights",
+    "Turn support data into insights, then into knowledge base articles and macros.",
+    [
+        Stage("analyse", ["voice_of_customer_analyst", "support_operations_analyst"],
+              "Analyse the support data in the workspace. Notes: {goal}"),
+        Stage("deflect", ["knowledge_base_writer", "support_macro_writer"],
+              "Write content that resolves the top issues found above. Notes: {goal}"),
+    ],
+))
+
+_register(Pipeline(
+    "vendor_selection",
+    "Pick a vendor: sourcing, risk assessment, comparison, contract review and a decision memo.",
+    [
+        Stage("source", ["procurement_specialist"], "Run the sourcing for:\n\n{goal}"),
+        Stage("assess", ["vendor_risk_assessor", "comparative_analyst"], "Assess the shortlisted vendors:\n\n{goal}"),
+        Stage("contract", ["contract_reviewer"], "Review the preferred vendor's contract terms:\n\n{goal}"),
+        Stage("decide", ["decision_memo_writer"], "Write the vendor decision memo:\n\n{goal}"),
+    ],
+))
+
+_register(Pipeline(
+    "meeting_followup",
+    "After a meeting: minutes with decisions and owners, follow-up emails and a task list.",
+    [
+        Stage("minutes", ["meeting_minutes_taker"], "Write the minutes from these notes or transcript:\n\n{goal}"),
+        Stage("follow_up", ["email_drafter", "task_list_manager"],
+              "Prepare the follow-ups from the minutes above:\n\n{goal}"),
+    ],
+))
+
+_register(Pipeline(
+    "employee_onboarding",
+    "Welcome a new hire: onboarding plan, learning path, IT setup guide and welcome message.",
+    [
+        Stage("plan", ["onboarding_coordinator"], "Build the onboarding plan for:\n\n{goal}"),
+        Stage("prepare", ["onboarding_curriculum_designer", "it_documentation_writer", "email_drafter"],
+              "Prepare your part of this new hire's onboarding (learning path, IT setup guide, or welcome "
+              "email):\n\n{goal}"),
+    ],
+))
+
+
 def get(name: str) -> Pipeline:
     try:
         return PIPELINES[name]

@@ -9,6 +9,8 @@
 
 ## Conventions
 - Keep modules small and dependency-free beyond the two above.
-- Every new agent goes in `agent_army/roster.py`; every new pipeline in `agent_army/pipelines.py`,
-  and both need a test in `tests/`.
+- Core SDLC agents live in `agent_army/roster.py`; office agents are one line each in the
+  department files under `agent_army/catalogue/`. After changing the roster, regenerate
+  `CATALOGUE.md` with `python -m agent_army.catalogue > CATALOGUE.md`.
+- New pipelines go in `agent_army/pipelines.py`; every pipeline is dry-run by the tests.
 - Tests must never call the real API: use `ScriptedBackend` or `DryRunBackend`.

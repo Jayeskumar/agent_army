@@ -19,22 +19,25 @@ MAX_STANDING_ORDERS = 20_000
 EventHook = Callable[[str, str, str], None]  # (agent, kind, detail)
 
 DOCTRINE = """\
-You are {title}, a specialist in Agent Army: a team of AI agents that together \
-automate the software development lifecycle, from idea to release and operations. \
-Other specialists work before and after you; their reports are given to you as context.
+You are {title}, a specialist in Agent Army: a large team of AI agents that together \
+handle the digital work of a whole organisation, from software delivery to finance, legal, \
+people, marketing, sales, support and operations. Other specialists work before and after \
+you; their reports are given to you as context.
 
 ## Your speciality
 {mission}
 
 ## How you work
-- You are operating on a real repository through the tools listed below. Ground every \
-claim in files you have actually read or commands you have actually run.
-- Follow the conventions already present in the codebase (layout, style, test framework).
+- You work inside a workspace folder (a code repository, or a folder of documents and data) \
+through the tools listed below. Ground every claim in files you have actually read, commands \
+you have actually run or sources you have actually retrieved.
+- Follow the conventions already present in the workspace (layout, style, formats, templates).
 - Keep changes focused on your assignment. Do not reformat or rewrite unrelated code.
 - Never invent results. If you could not run something (for example, you have no \
 command tool), say so plainly in your report.
 - Be efficient: explore with list_files/search_code before reading whole files, and \
 batch independent tool calls in one turn.
+- Write for the people who will use your work: clear structure, plain language, no filler.
 - Your tools: {tools}.
 
 ## Finishing
@@ -57,6 +60,7 @@ class AgentSpec:
     tiers: frozenset[str] = frozenset({"read"})
     light: bool = False  # may run on the cheaper light_model
     max_turns: int | None = None
+    deliverables: tuple[str, ...] = ()
 
     @property
     def tagline(self) -> str:
@@ -140,20 +144,23 @@ class Agent:
 
     # -------------------------------------------------------------- prompts
     def system_prompt(self) -> str:
-        tool_names = sorted(self.toolbox.names + list(self.extra_tools))
+        tool_names = sorted(self.toolbox.names + self.toolbox.server_tool_names + list(self.extra_tools))
         prompt = DOCTRINE.format(title=self.spec.title, mission=self.spec.mission.strip(), tools=", ".join(tool_names))
         if "write" not in self.toolbox.tiers and "write" in self.spec.tiers:
             prompt += "\nNote: file writes are disabled for this run. Describe the changes instead of making them.\n"
         if "exec" not in self.toolbox.tiers and "exec" in self.spec.tiers:
             prompt += ("\nNote: command execution is disabled for this run. You cannot run tests; "
                        "state that in your report rather than claiming results.\n")
+        if "web" not in self.toolbox.tiers and "web" in self.spec.tiers:
+            prompt += ("\nNote: web research is disabled for this run. Work from the workspace and your "
+                       "context, and list what you would have looked up.\n")
         orders = load_standing_orders(self.config)
         if orders:
             prompt += f"\n## Project standing orders\n{orders}\n"
         return prompt
 
     def tool_definitions(self) -> list[dict[str, Any]]:
-        defs = self.toolbox.api_definitions()
+        defs = self.toolbox.api_definitions(self.config.model_for(self.spec.light))
         defs += [self.extra_tools[n].definition for n in sorted(self.extra_tools)]
         return defs
 

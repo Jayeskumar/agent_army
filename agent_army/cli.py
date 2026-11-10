@@ -27,6 +27,7 @@ max_review_loops: 3
 max_parallel: 4
 allow_write: true
 allow_exec: false                  # let agents run tests/linters (allow-listed commands only)
+allow_web: false                   # let research roles use web search / fetch
 command_timeout: 300
 # extra_allowed_commands:
 #   - "poetry run pytest"
@@ -62,6 +63,9 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     try:
         return args.func(args)
+    except BrokenPipeError:  # e.g. `army roster --all | head`
+        sys.stderr.close()
+        return 0
     except (KeyError, ValueError) as exc:
         print(f"army: {exc.args[0] if exc.args else exc}", file=sys.stderr)
         return 64
@@ -72,8 +76,11 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--version", action="version", version=f"agent-army {__version__}")
     sub = p.add_subparsers(dest="cmd")
 
-    s = sub.add_parser("roster", help="List every agent in the army")
-    s.add_argument("--division", help="Only show one division")
+    s = sub.add_parser("roster", help="Browse the army: departments, agents and search")
+    s.add_argument("--department", "--division", dest="department", help="List the agents of one department")
+    s.add_argument("--search", help="Find agents by skill, deliverable or title")
+    s.add_argument("--all", action="store_true", help="List every agent")
+    s.add_argument("--show", metavar="AGENT", help="Show one agent's full brief")
     s.set_defaults(func=cmd_roster)
 
     s = sub.add_parser("pipelines", help="List the built-in pipelines")
@@ -86,7 +93,7 @@ def build_parser() -> argparse.ArgumentParser:
     s.set_defaults(func=cmd_run)
 
     s = sub.add_parser("deploy", help="Deploy a single agent on a task")
-    s.add_argument("agent", choices=sorted(roster.ROSTER))
+    s.add_argument("agent", help="Agent name (see `army roster --search ...`)")
     s.add_argument("task", help="Task text, '-' for stdin or @file")
     _common(s)
     s.set_defaults(func=cmd_deploy)
@@ -116,6 +123,8 @@ def _common(s: argparse.ArgumentParser) -> None:
     s.add_argument("--max-turns", type=int)
     s.add_argument("--allow-exec", action="store_true", default=None,
                    help="Allow agents to run allow-listed commands (tests, linters, builds)")
+    s.add_argument("--allow-web", action="store_true", default=None,
+                   help="Allow research agents to use server-side web search and fetch")
     s.add_argument("--read-only", action="store_true", help="Forbid all file writes")
     s.add_argument("--dry-run", action="store_true", help="Rehearse without calling the model")
     s.add_argument("--no-fallbacks", action="store_true", help="Disable server-side refusal fallbacks")
@@ -125,15 +134,62 @@ def _common(s: argparse.ArgumentParser) -> None:
 
 # ----------------------------------------------------------------- commands
 def cmd_roster(args) -> int:
-    for division, specs in roster.divisions().items():
-        if args.division and division != args.division:
-            continue
-        print(f"\n== {division.upper()} ==")
-        for spec in specs:
-            tiers = "/".join(sorted(spec.tiers))
-            print(f"  {spec.name:<22} {tiers:<16} {spec.tagline}")
-    print(f"\n== COMMAND ==\n  {roster.COMMANDER.name:<22} {'read/dispatch':<16} {roster.COMMANDER.tagline}")
+    groups = roster.divisions()
+    labels = roster.department_labels()
+    total = len(roster.ROSTER) + 1
+
+    if args.show:
+        spec = roster.get(args.show)
+        print(f"{spec.name} - {spec.title} [{labels.get(spec.division, (spec.division,))[0]}]")
+        print(f"tools: {_tier_code(spec)}{'  (light model)' if spec.light else ''}\n")
+        print(spec.mission.strip())
+        return 0
+
+    if args.search:
+        hits = roster.search(args.search, department=args.department, limit=20)
+        if not hits:
+            print("No matching agents.")
+            return 1
+        for spec in hits:
+            _print_agent(spec, labels)
+        return 0
+
+    if args.department:
+        if args.department not in groups:
+            print(f"Unknown department '{args.department}'. Known: {', '.join(groups)}", file=sys.stderr)
+            return 64
+        label, desc = labels.get(args.department, (args.department, ""))
+        print(f"{label} ({len(groups[args.department])} agents): {desc}\n")
+        for spec in groups[args.department]:
+            _print_agent(spec, labels, show_dept=False)
+        return 0
+
+    if args.all:
+        for key, specs in groups.items():
+            print(f"\n== {labels.get(key, (key,))[0]} ({len(specs)}) ==")
+            for spec in specs:
+                _print_agent(spec, labels, show_dept=False)
+        print(f"\n== Command (1) ==\n  {roster.COMMANDER.name:<34} {'r+dispatch':<7} {roster.COMMANDER.tagline}")
+        return 0
+
+    print(f"Agent Army: {total} agents - {total - 1} specialists in {len(groups)} departments, plus the commander\n")
+    print(f"  {'department':<26} {'agents':>6}  covers")
+    for key, specs in groups.items():
+        label, desc = labels.get(key, (key, ""))
+        print(f"  {key:<26} {len(specs):>6}  {label}: {desc}")
+    print(f"  {'commander':<26} {1:>6}  Leads `army mission` runs and dispatches the others")
+    print("\nMore: army roster --department <name> | --search '<words>' | --show <agent> | --all")
     return 0
+
+
+def _tier_code(spec) -> str:
+    code = "".join(c for t, c in (("read", "r"), ("write", "w"), ("exec", "x")) if t in spec.tiers)
+    return code + ("+web" if "web" in spec.tiers else "")
+
+
+def _print_agent(spec, labels, show_dept: bool = True) -> None:
+    dept = f"[{spec.division}] " if show_dept else ""
+    print(f"  {spec.name:<34} {_tier_code(spec):<7} {dept}{spec.tagline}")
 
 
 def cmd_pipelines(args) -> int:
@@ -196,7 +252,7 @@ def cmd_report(args) -> int:
 def _army(args) -> Army:
     overrides = dict(
         model=args.model, light_model=args.light_model, effort=args.effort,
-        max_turns=args.max_turns, allow_exec=args.allow_exec,
+        max_turns=args.max_turns, allow_exec=args.allow_exec, allow_web=args.allow_web,
     )
     if args.read_only:
         overrides["allow_write"] = False
